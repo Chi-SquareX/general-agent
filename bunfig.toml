@@ -1,0 +1,12 @@
+# bunfig.toml — Bun configuration for development mode
+# The plugin intercepts `bun:bundle` imports → src/shims/bun-bundle.ts
+#
+# MACRO is normally injected by the production esbuild bundle (`scripts/build-bundle.ts`).
+# For `bun run agent-server` and other unbundled entrypoints, define it here so bare
+# `MACRO` references in ESM resolve (globalThis assignment alone is not enough).
+
+preload = ["./scripts/bun-plugin-shims.ts"]
+
+[define]
+# Values are JS expressions (see Bun bunfig docs). Match package.json version.
+MACRO = "({ VERSION: '0.0.0-leaked', PACKAGE_URL: '@anthropic-ai/claude-code', ISSUES_EXPLAINER: 'report issues at https://github.com/anthropics/claude-code/issues', FEEDBACK_CHANNEL: 'https://github.com/anthropics/claude-code/issues', NATIVE_PACKAGE_URL: 'undefined', VERSION_CHANGELOG: [], BUILD_TIME: 'undefined' })"

@@ -1,0 +1,21 @@
+# Build context: repository root (see docker-compose.yml)
+node_modules
+web/node_modules
+web/.next
+
+.git
+.github
+
+dist
+
+.env
+.env.*
+
+*.log
+coverage
+.nyc_output
+
+.DS_Store
+Thumbs.db
+.vscode
+.idea

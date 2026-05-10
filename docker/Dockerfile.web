@@ -1,0 +1,19 @@
+# Next.js dev UI for local web agent (claude-code/web)
+FROM node:20-bookworm-slim
+
+WORKDIR /app
+
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+
+COPY web/ ./
+
+# Server-side proxy in app/api/chat/route.ts resolves this at runtime
+ENV NEXT_PUBLIC_API_URL=http://agent-backend:3001
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:3000',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+
+CMD ["npx", "next", "dev", "--port", "3000", "--hostname", "0.0.0.0"]

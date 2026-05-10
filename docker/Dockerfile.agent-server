@@ -1,0 +1,26 @@
+# Bun HTTP agent: QueryEngine + tool loop (see docs/web-agent.md)
+FROM oven/bun:1
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    git ripgrep ca-certificates \
+    python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile || bun install
+
+COPY . .
+
+ENV NODE_ENV=production \
+    PORT=3001 \
+    HOST=0.0.0.0
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD bun -e "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["bun", "run", "agent-server"]

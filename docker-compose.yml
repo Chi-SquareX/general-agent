@@ -1,0 +1,45 @@
+# Local web agent stack: Bun backend (QueryEngine + tools) + Next.js UI.
+#
+# Prerequisites: Docker Desktop (or Docker Engine + Compose v2).
+#
+# Usage (from this directory — same folder as this file):
+#   export ANTHROPIC_API_KEY=sk-ant-api03-...
+#   docker compose up --build
+#
+# Frontend: http://localhost:3000 (override WEB_PORT if needed)
+# In the UI, set "Workspace root" to /workspace so tools use the mounted volume.
+#
+# Optional: mount your repo into the agent (default ./workspace → /workspace).
+#   HOST_WORKSPACE=/path/to/your/project docker compose up --build
+#
+# Ports: agent-backend 3001 (POST /api/chat, GET /health) · web 3000 (Next.js proxy)
+#
+# API key: copy `.env.example` to `.env` and set ANTHROPIC_API_KEY=sk-ant-...
+# Compose injects it into agent-backend (and you can pass the same file to local `bun run`).
+
+services:
+  agent-backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.agent-server
+    ports:
+      - "${AGENT_PORT:-3001}:3001"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PORT: "3001"
+      HOST: "0.0.0.0"
+    volumes:
+      - "${HOST_WORKSPACE:-./workspace}:/workspace:rw"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://agent-backend:3001
+    depends_on:
+      - agent-backend
+    restart: unless-stopped
